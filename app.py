@@ -45,43 +45,72 @@ def index():
             if password == passcorrect:
                 print("VALIDA SESIÓN",passcorrect)
                 return redirect(url_for('consulta'))
-
             else:
-                print("Contraseña incorrecta")
+                print("CONTRASEÑA INCORRECTA")
         else:    
-            print("uwu, no existe",username)
+            print("NO EXISTE EL USUARIO",username)
     return render_template('index.html')
 
-
-@app.route('/consulta/')
+@app.route('/consulta')
 def consulta():
     username = session["user"]
-    print("HOLI PEXXXX",session["user"])
     if g.user:
-        print("Hasta aquiiiiiiiiiiiiiiiii")
         cursor.execute("SELECT * FROM personas WHERE nro_tarjeta="+username)
-        nombre = cursor.fetchone()[2]
-        print(nombre)
-        cursor.execute("SELECT * FROM personas WHERE nro_tarjeta="+username)
-        apellido = cursor.fetchone()[3]
-        print(apellido)
-        cursor.execute("SELECT * FROM personas WHERE nro_tarjeta="+username)
-        telefono = cursor.fetchone()[4]
-        print(telefono)
-        cursor.execute("SELECT * FROM personas WHERE nro_tarjeta="+username)
-        correo = cursor. fetchone()[5]
-        print(correo)
+        usuario = cursor.fetchone()
         cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
-        banco = cursor.fetchone()[1]
-        cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
-        saldo = cursor.fetchone()[2]
-        cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
-        nrocuenta = cursor.fetchone()[3]
-        cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
-        nrocuentainter = cursor.fetchone()[4]
-        print(nombre)
-        return render_template('consulta.html', name = nombre, lastname = apellido, banco= banco, correo=correo, telef=telefono, saldo=saldo, nrocuenta=nrocuenta, nrocuentainter=nrocuentainter)
+        infobanco = cursor.fetchone()
+        return render_template('consulta.html', name = usuario[2], lastname = usuario[3], banco= infobanco[1], correo=usuario[5], telef=usuario[4], saldo=infobanco[2], nrocuenta=infobanco[3], nrocuentainter=infobanco[4])
     return render_template('index.html')
+
+ # Agregar función "transacción"
+@app.route('/transaccion', methods=['GET','POST'])
+def transaccion():
+    username = session["user"]
+    print("SIGUE EN SESION EL USUARIO", username)
+    if request.method == 'POST':
+        monto = int(request.form['monto'])
+        nrocuentadestino = request.form['nrocuentadestino']
+        fecha_ven = request.form['fechaven']
+        cod_seg = int(request.form['codseg'])
+        cursor.execute("SELECT * FROM infobancaria WHERE nrocuenta="+nrocuentadestino)
+        info_destino = cursor.fetchone() 
+        conexion.commit()
+        print("HACE LA VALIDACIÓN", info_destino)
+        if info_destino != None:
+            print("EXISTE EL REGISTRO",info_destino)
+            cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
+            info_origen = cursor.fetchone()
+            conexion.commit()
+            if monto <= info_origen[2]:
+                print("TIENE SUFICIENTE SALDO")
+                if cod_seg == info_origen[6]:
+                    print("CODIGO DE SEGURIDAD CORRECTO")
+                    nsaldo_destino = info_destino[2]+monto
+                    nsaldo_origen = info_destino[2]-monto
+                    cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_destino)+" WHERE nro_tar="+str(nrocuentadestino))
+                    conexion.commit()
+                    cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_origen)+" WHERE nro_tar="+username)
+                    conexion.commit()
+                    return render_template('exito_consulta.html')
+                else:
+                    print("CODIGO DE SEGURIDAD INCORRECTO")    
+            else:
+                print ("NO TIENE SALDO SUFICIENTE")
+    #            print("VALIDA SESIÓN",passcorrect)
+    #            return redirect(url_for('consulta'))
+        else:    
+            print("NO EXISTE EL USUARIO ")
+
+    return render_template('transaccion.html')
+
+@app.route('/exito_transaccion', methods=['GET', 'POST'])
+def exito_transaccion():
+    username = session["user"]
+    print("SIGUE EN SESION EL USUARIO", username)
+    if request.method == 'POST':
+        return render_template('consulta.html')
+
+
 
 @app.before_request
 def before_request():
@@ -91,3 +120,4 @@ def before_request():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
