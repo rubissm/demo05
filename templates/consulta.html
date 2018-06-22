@@ -57,6 +57,25 @@
                     </div>
                 </div>
                 </div>
+                <div>
+                    <center>
+                        <h4>Transacciones!</h4>
+                    </center>
+                    <div class="row" style="padding:5px; margin: 7px; background: grey; border-radius: 5px;">
+                            <div class="col-md-4 col-lg-4">Cuenta cliente</div>
+                            <div class="col-md-4 col-lg-4">Cuenta destino</div>
+                            <div class="col-md-4 col-lg-4">Monto</div>
+                    </div>
+                    {% for n in transacciones%}
+                    <div class="row" style="padding:5px; margin: 7px; border-radius: 5px; background: rgb(116, 206, 136);">
+                        <div class="col-md-4 col-lg-4">{{n[0]}}</div>
+                        <div class="col-md-4 col-lg-4">{{n[1]}}</div>
+                        <div class="col-md-4 col-lg-4">{{n[2]}}</div>
+                    </div>
+                    {% endfor %}
+
+
+                </div>
                    <!-- <div class="panel-footer">
                             <a data-original-title="Broadcast Message" data-toggle="tooltip" type="button" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-envelope"></i></a>
                             <span class="pull-right">

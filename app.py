@@ -59,7 +59,13 @@ def consulta():
         usuario = cursor.fetchone()
         cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
         infobanco = cursor.fetchone()
-        return render_template('consulta.html', name = usuario[2], lastname = usuario[3], banco= infobanco[1], correo=usuario[5], telef=usuario[4], saldo=infobanco[2], nrocuenta=infobanco[3], nrocuentainter=infobanco[4])
+        cursor.execute("SELECT * FROM old_transaccion WHERE nro_tar_desde="+username)
+        transacciones = cursor.fetchall()
+        print(transacciones)
+        #print(transaccion)
+        return render_template('consulta.html', name = usuario[2], lastname = usuario[3], banco= infobanco[1],
+        correo=usuario[5], telef=usuario[4], saldo=infobanco[2], nrocuenta=infobanco[3], nrocuentainter=infobanco[4],
+        transacciones=transacciones)
     return render_template('index.html')
 
  # Agregar función "transacción"
@@ -90,6 +96,8 @@ def transaccion():
                     cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_destino)+" WHERE nro_tar="+str(nrocuentadestino))
                     conexion.commit()
                     cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_origen)+" WHERE nro_tar="+username)
+                    conexion.commit()
+                    cursor.execute("INSERT INTO old_transaccion VALUES("+username+","+str(nrocuentadestino)+", "+str(monto)+");")
                     conexion.commit()
                     return render_template('exito_consulta.html')
                 else:
