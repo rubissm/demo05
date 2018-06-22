@@ -92,7 +92,7 @@ def transaccion():
                 if cod_seg == info_origen[6]:
                     print("CODIGO DE SEGURIDAD CORRECTO")
                     nsaldo_destino = info_destino[2]+monto
-                    nsaldo_origen = info_destino[2]-monto
+                    nsaldo_origen = info_origen[2]-monto
                     cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_destino)+" WHERE nro_tar="+str(nrocuentadestino))
                     conexion.commit()
                     cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_origen)+" WHERE nro_tar="+username)
