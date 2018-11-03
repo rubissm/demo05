@@ -1,6 +1,7 @@
 from flask import Flask, g, request, render_template, url_for, redirect, session
 import os
 import sqlite3
+import datetime
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -59,7 +60,7 @@ def consulta():
         usuario = cursor.fetchone()
         cursor.execute("SELECT * FROM infobancaria WHERE nro_tar="+username)
         infobanco = cursor.fetchone()
-        cursor.execute("SELECT * FROM old_transaccion WHERE nro_tar_desde="+username)
+        cursor.execute("SELECT * FROM old_transaccion WHERE nro_tar_desde="+username+" order by date desc")
         transacciones = cursor.fetchall()
         print(transacciones)
         #print(transaccion)
@@ -89,6 +90,7 @@ def transaccion():
             conexion.commit()
             if monto <= info_origen[2]:
                 print("TIENE SUFICIENTE SALDO")
+                print(cod_seg, info_origen[6])
                 if cod_seg == info_origen[6]:
                     print("CODIGO DE SEGURIDAD CORRECTO")
                     nsaldo_destino = info_destino[2]+monto
@@ -97,7 +99,8 @@ def transaccion():
                     conexion.commit()
                     cursor.execute("UPDATE infobancaria SET saldo="+str(nsaldo_origen)+" WHERE nro_tar="+username)
                     conexion.commit()
-                    cursor.execute("INSERT INTO old_transaccion VALUES("+username+","+str(nrocuentadestino)+", "+str(monto)+");")
+                    today = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("INSERT INTO old_transaccion VALUES("+username+","+str(nrocuentadestino)+", "+str(monto)+", '"+today+"');")
                     conexion.commit()
                     return render_template('exito_consulta.html')
                 else:
